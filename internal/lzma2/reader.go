@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/ulikunitz/xz/lzma"
+	"github.com/kulaginds/lzma"
 )
 
 type readCloser struct {
@@ -40,15 +40,7 @@ func NewReader(p []byte, _ uint64, readers []io.ReadCloser) (io.ReadCloser, erro
 		return nil, errors.New("lzma2: not enough properties")
 	}
 
-	config := lzma.Reader2Config{
-		DictCap: (2 | (int(p[0]) & 1)) << (p[0]/2 + 11), // This gem came from Lzma2Dec.c
-	}
-
-	if err := config.Verify(); err != nil {
-		return nil, err
-	}
-
-	lr, err := config.NewReader2(readers[0])
+	lr, err := lzma.NewReader2ForSevenZip(readers[0], p)
 	if err != nil {
 		return nil, err
 	}
