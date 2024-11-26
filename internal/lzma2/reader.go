@@ -2,11 +2,12 @@
 package lzma2
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 
-	"github.com/ulikunitz/xz/lzma"
+	"github.com/kulaginds/lzma"
 )
 
 type readCloser struct {
@@ -57,15 +58,7 @@ func NewReader(p []byte, _ uint64, readers []io.ReadCloser) (io.ReadCloser, erro
 		return nil, errInsufficientProperties
 	}
 
-	config := lzma.Reader2Config{
-		DictCap: (2 | (int(p[0]) & 1)) << (p[0]/2 + 11), // This gem came from Lzma2Dec.c
-	}
-
-	if err := config.Verify(); err != nil {
-		return nil, fmt.Errorf("lzma2: error verifying config: %w", err)
-	}
-
-	lr, err := config.NewReader2(readers[0])
+	lr, err := lzma.NewReader2ForSevenZip(bufio.NewReader(readers[0]), p)
 	if err != nil {
 		return nil, fmt.Errorf("lzma2: error creating reader: %w", err)
 	}
